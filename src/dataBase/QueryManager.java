@@ -340,41 +340,29 @@ public class QueryManager {
         return null;
 
     }
-//    public static void checkCategoriesExists() {
-//
-//        String query1 = "SELECT count(*) AS count " +
-//                        "FROM Categories " +
-//                        "WHERE name LIKE ?";
-//        String query2 = "INSERT INTO Categories (name, parent_ID, level) " +
-//                        "VALUES (?, ?, 1);";
-//        String[] table = {"Sklep","Produkty spożywcze", "Produkty nonfood", "Inne"};
-//
-//        try {
-//            PreparedStatement prepStmt1 = DataBaseConnection.conn.prepareStatement(query1);
-//
-//            for (String tab : table) {
-//                prepStmt1.setString(1, tab);
-//                ResultSet result = prepStmt1.executeQuery();
-//
-//                if (result.next()) {
-//                    int count = result.getInt("count");
-//
-//                    if (count == 0) {
-//                        try {
-//                            PreparedStatement prepStmt2 = DataBaseConnection.conn.prepareStatement(query2);
-//                            prepStmt2.setString(1, tab);
-//                            prepStmt2.setInt(2, tab.equals("Sklep") ? 0 : 1);
-//                            prepStmt2.execute();
-//                        } catch (SQLException e) {
-//                            System.err.println("Blad przy sprawdzaniu pojedyńczych kategorii");
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-//            }
-//        } catch (SQLException e) {
-//            System.err.println("Blad przy sprawdzaniu kategorii");
-//            e.printStackTrace();
-//        }
-//    }
+    public static Category selectCategoryById(int id) {
+
+        String query = "SELECT * " +
+                "FROM Categories " +
+                "WHERE id = ?";
+
+        try {
+            PreparedStatement prepStmt = DataBaseConnection.conn.prepareStatement(query);
+            prepStmt.setInt(1, id);
+            ResultSet result = prepStmt.executeQuery();
+
+            if (result.next()) {
+                String name = result.getString("name");
+                String desc = result.getString("desc");
+
+                return new Category(id, name, desc);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Blad przy pobieraniu produktu po id");
+            e.printStackTrace();
+        }
+        return null;
+
+    }
 }

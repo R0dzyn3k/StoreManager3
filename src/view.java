@@ -161,7 +161,7 @@ public class view extends JFrame {
                     categoryEdit.setEnabled(true);
                     categoryName.setText(selectedNode.toString());
                     categoryDesc.setText(selectedNode.toString());
-                }else{
+                } else {
                     refreshCategoryTree();
                 }
                 categoryEdit.setEnabled(true);
@@ -198,10 +198,10 @@ public class view extends JFrame {
                 String name = categoryName.getText();
                 String desc = categoryDesc.getText();
 
-                if(selectedCategoryId == -1){
+                if (selectedCategoryId == -1) {
                     Category newCategory = new Category(name, desc);
                     QueryManager.insertCategory(newCategory);
-                }else{
+                } else {
                     currCategory.setName(name);
                     currCategory.setDesc(desc);
                     QueryManager.updateCategory(currCategory);
@@ -216,11 +216,12 @@ public class view extends JFrame {
         });
 
     }
+
     private void refreshCategoryTree() {
         ArrayList<Category> categories = QueryManager.selectCategories();
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Kategorie");
 
-        for(Category category : categories){
+        for (Category category : categories) {
             DefaultMutableTreeNode categoryNode = new DefaultMutableTreeNode(category.getName());
 
             root.add(categoryNode);
@@ -230,14 +231,14 @@ public class view extends JFrame {
 
     }
 
-    private void createCategoryTree(){
+    private void createCategoryTree() {
 
         ArrayList<Category> categories = QueryManager.selectCategories();
         assert categories != null;
 
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Kategorie");
 
-        for(Category category : categories){
+        for (Category category : categories) {
             DefaultMutableTreeNode categoryNode = new DefaultMutableTreeNode(category.getName());
 
             root.add(categoryNode);
@@ -247,7 +248,7 @@ public class view extends JFrame {
     }
 
 
-    public void tableConfig( List<Product> products ) {
+    public void tableConfig(List<Product> products) {
         TableColumnModel columnModel = tabSelectList.getColumnModel();
         columnModel.getColumn(0).setMinWidth(30);
         columnModel.getColumn(0).setMaxWidth(30);
@@ -277,12 +278,12 @@ public class view extends JFrame {
                         productSalePrice.setEnabled(false);
                         productSaleFrom.setEnabled(false);
                         productSaleTo.setEnabled(false);
-                        if(selectedProduct.getSalePrice() != 0){
+                        if (selectedProduct.getSalePrice() != 0) {
                             productOnSale.setSelected(true);
                             productSalePrice.setText(String.valueOf(selectedProduct.getSalePrice()));
                             productSaleFrom.setText(String.valueOf(selectedProduct.getSaleFrom()));
                             productSaleTo.setText(String.valueOf(selectedProduct.getSaleTo()));
-                        }else{
+                        } else {
                             productOnSale.setSelected(false);
                             productSalePrice.setText("");
                             productSaleFrom.setText("");
@@ -293,19 +294,15 @@ public class view extends JFrame {
                         productEdit.setEnabled(true);
                         productSave.setEnabled(false);
 
-                        int categoryId = 0;
-
-                        ArrayList<Category> categories = QueryManager.selectCategories();
-
-                        for (Category category : categories) {
-                            if (category.getName().equals(categoryName)) {
-                                categoryId = category.getId();
-                                break;
-                            }
+                        int categoryId = selectedProduct.getCategoryId();
+                        if (categoryId == 0) {
+                            productCategory.setSelectedIndex(-1);
+                        } else {
+                            Category category = QueryManager.selectCategoryById(categoryId);
+                            productCategory.setSelectedItem(category.getName());
                         }
-
-                        productCategory.setSelectedIndex(-1);
                         productCategory.setEnabled(false);
+
                     }
                 }
             }
@@ -372,30 +369,38 @@ public class view extends JFrame {
                     String name = productName.getText();
                     String desc = productDesc.getText();
                     double price = Double.parseDouble(productPrice.getText());
+                    int qty = Integer.parseInt(productQty.getText());
                     double salePrice = Double.parseDouble(productSalePrice.getText());
                     String saleFrom = productSaleFrom.getText();
                     String saleTo = productSaleTo.getText();
-                    int qty = Integer.parseInt(productQty.getText());
 
-//                String category = productCategory.getSelectedItem().toString();
-                boolean onSale = productOnSale.isSelected();
+                    int categoryId = 0;
+                    String categoryName = (String) productCategory.getSelectedItem();
 
+                    ArrayList<Category> categories = QueryManager.selectCategories();
+
+                    assert categories != null;
+                    for (Category category : categories) {
+                        if (category.getName().equals(categoryName)) {
+                            categoryId = category.getId();
+                            break;
+                        }
+                    }
 
                     updatedProduct.setName(name);
                     updatedProduct.setDesc(desc);
                     updatedProduct.setPrice(price);
                     updatedProduct.setQty(qty);
-                    if(productOnSale.isSelected()) {
+                    updatedProduct.setCategoryId(categoryId);
+                    if (productOnSale.isSelected()) {
                         updatedProduct.setSalePrice(salePrice);
                         updatedProduct.setSaleFrom(saleFrom);
                         updatedProduct.setSaleTo(saleTo);
-                    }else{
+                    } else {
                         updatedProduct.setSalePrice(0);
                         updatedProduct.setSaleFrom("");
                         updatedProduct.setSaleTo("");
                     }
-
-
 
                     QueryManager.updateProduct(updatedProduct);
 
@@ -423,13 +428,13 @@ public class view extends JFrame {
                         }
                     }
 
-                    if(productOnSale.isSelected()){
-                        double salePrice = Double.parseDouble(productPrice.getText());
+                    if (productOnSale.isSelected()) {
+                        double salePrice = Double.parseDouble(productSalePrice.getText());
                         String saleFrom = productSaleFrom.getText();
                         String saleTo = productSaleTo.getText();
 
                         newProduct = new Product(name, desc, price, salePrice, saleFrom, saleTo, qty, categoryId);
-                    }else{
+                    } else {
                         newProduct = new Product(name, desc, price, qty, categoryId);
                     }
 
@@ -462,13 +467,14 @@ public class view extends JFrame {
                 productSaleFrom.setText("");
                 productSaleTo.setText("");
                 productCategory.setSelectedIndex(-1);
+                productCategory.setEnabled(true);
                 productEdit.setEnabled(false);
                 productSave.setEnabled(true);
             }
         });
     }
 
-    public void boxSettings(){
+    public void boxSettings() {
         Border border = BorderFactory.createLineBorder(Color.GRAY);
         productDesc.setBorder(border);
         productOnSale.setBorder(border);
@@ -482,18 +488,18 @@ public class view extends JFrame {
         productCategory.setBorder(border);
     }
 
-    public void saleModule(){
+    public void saleModule() {
         productOnSale.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(productOnSale.isSelected()){
+                if (productOnSale.isSelected()) {
                     productSaleFrom.setEditable(true);
                     productSaleFrom.setEnabled(true);
                     productSaleTo.setEditable(true);
                     productSaleTo.setEnabled(true);
                     productSalePrice.setEnabled(true);
                     productSalePrice.setEditable(true);
-                }else{
+                } else {
                     productSaleFrom.setEditable(false);
                     productSaleFrom.setEnabled(false);
                     productSaleTo.setEditable(false);
